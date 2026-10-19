@@ -64,7 +64,7 @@ npm run dev
    ```env
    DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
    ```
-   Для serverless-окружения Vercel лучше использовать pooled-строку подключения Neon (например, с `-pooler` в хосте). Для миграций берите direct-строку без `-pooler`.
+   Для первого запуска проще direct-строка без `-pooler`. В serverless-окружении Vercel можно перейти на pooled-строку (хост с `-pooler`) с параметром `pgbouncer=true`; миграции при этом запускайте через direct-строку.
 3. Примените схему и загрузите стартовые данные:
    ```bash
    npx prisma migrate dev --name init
