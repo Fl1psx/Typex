@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String            @id @default(cuid())
+  username     String            @unique
+  email        String            @unique
+  passwordHash String
+  bio          String?
+  avatarStyle  String            @default("initials")
+  settings     String            @default("{}")
+  createdAt    DateTime          @default(now())
+  results      Result[]
+  texts        Text[]
+  achievements UserAchievement[]
+}
+
+model Text {
+  id          String      @id @default(cuid())
+  title       String
+  content     String
+  language    String
+  category    String
+  author      String?
+  isPublic    Boolean     @default(true)
+  createdById String?
+  createdAt   DateTime    @default(now())
+  createdBy   User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  results     Result[]
+  dailyTexts  DailyText[]
+
+  @@index([language])
+  @@index([createdById])
+  @@index([isPublic, language, category])
+}
+
+model Result {
+  id          String   @id @default(cuid())
+  userId      String
+  textId      String
+  wpm         Float
+  accuracy    Float
+  durationSec Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text        Text     @relation(fields: [textId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([textId, wpm])
+  @@index([createdAt])
+  @@index([wpm])
+}
+
+model Achievement {
+  id               String            @id @default(cuid())
+  code             String            @unique
+  name             String
+  description      String
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@id([userId, achievementId])
+  @@index([achievementId])
+}
+
+model DailyText {
+  id        String   @id @default(cuid())
+  date      String   @unique
+  textId    String
+  createdAt DateTime @default(now())
+  text      Text     @relation(fields: [textId], references: [id], onDelete: Cascade)
+
+  @@index([textId])
+}
